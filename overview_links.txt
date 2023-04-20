@@ -11,3 +11,6 @@ Other potentially useful links:
 https://stackoverflow.com/questions/7569553/working-with-tiffs-import-export-in-python-using-numpy
 
 ------------------------------------
+
+Potential scripts:
+

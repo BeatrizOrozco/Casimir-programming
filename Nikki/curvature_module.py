@@ -5,61 +5,41 @@ Spyder Editor
 This is a temporary script file.
 """
 import numpy as np
-import skimage.io as io
+import matplotlib.pyplot as plt
 import skimage.filters as filters
 import skimage.feature as feature
 import skimage.morphology as morphology
 import skimage.segmentation as segmentation
 import skimage.measure as measure
 import scipy.ndimage as ndi
-import matplotlib.pyplot as plt
 
-#%%
+#%% Function that calculates the curvatures defined by a set of points
+
 def calculate_curvature(points):
-    '''
-    Calculates the curvature of a curve defined by a set of points.
-
-    Input:
-        points (NumPy array): A (n,2) numpy array of (x,y) coordinates.
-
-    Returns:
-        NumPy array (n,) of curvatures.
-    '''
-    # Compute the first and second derivatives of the curve with respect to the parameter t
+    # Calculate first and second derivatives of the curve
     dx_dt, dy_dt = np.gradient(points, axis=0).T
     d2x_dt2, d2y_dt2 = np.gradient(np.array([dx_dt, dy_dt]), axis=0)
 
-    # Calculate the curvature using the formula (dx_dt * d2y_dt2 - dy_dt * d2x_dt2) / (dx_dt**2 + dy_dt**2)**1.5
+    # Calculate the curvature with the specified formula
     curvature = (dx_dt * d2y_dt2 - dy_dt * d2x_dt2) / (dx_dt**2 + dy_dt**2)**1.5
     
     return curvature
 
+#%% Function that processes the image by smoothing, manipulating, and detecting edges
 def preprocess_image(image, sigma=3, dilation_radius=2, min_size=200):
-    '''
-    Preprocesses the input image by smoothing, edge detection, dilation, hole filling, and noise removal.
-
-    Input:
-        image (NumPy array): A 2D grayscale image.
-        sigma (float): Standard deviation for Gaussian smoothing.
-        dilation_radius (int): Radius of the disk-shaped structuring element for dilation.
-        min_size (int): Minimum size of connected components to keep.
-
-    Returns:
-        NumPy array: A preprocessed binary image.
-    '''
-    # Apply a Gaussian filter to smooth the image and remove noise
+    # Smooth edges with Gaussian filter
     smooth_image = filters.gaussian(image, sigma=sigma)
 
-    # Detect edges in the smoothed image using the Canny edge detection algorithm
+    # Use Canny edge detection algorithm to detect edges 
     edges = feature.canny(smooth_image)
 
-    # Dilate the edges using a disk-shaped structuring element with the specified radius
+    # Dilate the edges using a disk-shaped element with the specified radius
     dilated_edges = morphology.dilation(edges, selem=morphology.disk(dilation_radius))
 
-    # Fill holes inside the objects in the dilated edges image
+    # Fill the insides of the objects
     filled_edges = ndi.binary_fill_holes(dilated_edges)
 
-    # Remove small objects (connected components) smaller than the specified minimum size
+    # Remove objects smaller than the specified minimum size
     cleaned_edges = morphology.remove_small_objects(filled_edges, min_size=min_size)
     return cleaned_edges
 
@@ -117,22 +97,3 @@ def plot_segmented_objects(image, labels, contour_threshold=0.8):
     ax.set_ylabel('Y axis (pixels)')
     ax.set_title('Segmented objects with mean curvature')
     plt.show()
-
-# Load the image
-blobs = io.imread('blobs.tif', plugin="tifffile")
-
-channel_images = io.imread('FluorescentCells.tif', plugin="tifffile").T
-channel_1 = channel_images[0]
-channel_2 = channel_images[1]
-channel_3 = channel_images[2]
-
-image = channel_3
-
-# Preprocess the image to obtain a binary image
-cleaned_edges = preprocess_image(image)
-
-# Segment the objects in the binary image using the watershed algorithm
-labels = segment_objects(cleaned_edges)
-
-# Plot the segmented objects and their mean curvature on the original image
-plot_segmented_objects(image, labels)

@@ -10,8 +10,8 @@ from skimage.measure import label,regionprops
 from matplotlib.colors import LinearSegmentedColormap
 
 
-def masking (image):
-    mask=image > 50
+def masking (image, threshold, num_labels):
+    mask=image > threshold
     mask = np.vectorize(clear_border, signature='(n,m)->(n,m)')(mask)
     ##label the masked sections of code
     mask_labeled = np.vectorize(label, signature='(n,m)->(n,m)')(mask)
@@ -24,7 +24,7 @@ def masking (image):
     idxs=np.argsort(areas)[::-1]
     #print(idxs)
     zero_sl=np.zeros_like(sl)
-    for i in idxs[:6]:  #add counting algorithm for # of sections!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    for i in idxs[:num_labels]:  #add counting algorithm for # of sections!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         zero_sl[tuple(rps[i].coords.T)] = i+1
         
         

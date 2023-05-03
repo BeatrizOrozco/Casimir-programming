@@ -1,18 +1,16 @@
 import numpy as np
 from PIL import Image
-from scipy import ndimage
+from scipy import ndimage as ndi
 from skimage import measure
 
-def identify_objects_above_threshold(image_path, threshold, min_size):
-    # Read the image
-    img = np.array(Image.open(image_path))
+def identify_objects_above_threshold(img, threshold, min_size):
 
     # Threshold the image to create a binary image
     binary_img = np.zeros_like(img)
     binary_img[img > threshold] = 1
 
     # Label the connected components in the binary image
-    label_img, num_labels = scipy.ndimage.label(binary_img)
+    label_img, num_labels = ndi.label(binary_img)
 
     # Find the properties of each connected component
     props = measure.regionprops(label_img, intensity_image=img)
